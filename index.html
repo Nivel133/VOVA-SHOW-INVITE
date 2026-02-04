@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>THE VOVA SHOW | COUNTDOWN</title>
+    <style>
+        :root { --neon: #0f0; --blue: #00f3ff; --pink: #ff00ff; --bg: #020202; }
+        body, html { margin: 0; padding: 0; background: var(--bg); font-family: 'Courier New', monospace; height: 100%; overflow: hidden; color: var(--neon); }
+        canvas { position: fixed; top: 0; left: 0; z-index: 1; opacity: 0.25; pointer-events: none; }
+        .screen { position: relative; z-index: 10; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100%; }
+
+        /* ГЛИТЧ РАМКИ */
+        .glitch-frame {
+            background: rgba(0, 15, 0, 0.95); border: 2px solid var(--neon);
+            padding: 30px; border-radius: 20px; text-align: center;
+            width: 80%; max-width: 300px; box-shadow: 0 0 20px rgba(0,255,0,0.2);
+            animation: frame-distort 4s infinite;
+        }
+        @keyframes frame-distort {
+            0%, 90%, 100% { transform: skew(0deg); border-color: var(--neon); }
+            92% { transform: skew(3deg); border-color: var(--pink); }
+            94% { transform: skew(-3deg); border-color: var(--blue); }
+        }
+
+        /* ГЛИТЧ УРАВНЕНИЯ */
+        .eq {
+            font-size: 34px; color: #fff; margin: 20px 0; font-weight: bold;
+            animation: text-glitch 3s infinite;
+        }
+        @keyframes text-glitch {
+            0%, 95%, 100% { text-shadow: none; transform: none; }
+            96% { text-shadow: 3px 0 var(--pink), -3px 0 var(--blue); transform: translate(-2px, 1px); }
+            98% { text-shadow: -3px 0 var(--pink), 3px 0 var(--blue); transform: translate(2px, -5px); }
+        }
+
+        input {
+            background: #000; border: 2px solid var(--neon); color: var(--neon);
+            font-size: 32px; width: 100px; text-align: center; padding: 15px;
+            border-radius: 10px; outline: none; margin-bottom: 25px; -webkit-appearance: none;
+        }
+
+        .btn-main {
+            background: var(--neon); color: #000; font-size: 20px; font-weight: 900;
+            width: 100%; padding: 20px; border: none; border-radius: 12px;
+            cursor: pointer; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,255,0,0.4);
+        }
+
+        /* БИЛЕТ С RGB РАМКОЙ */
+        .rgb-wrap {
+            position: relative; padding: 5px; border-radius: 30px; overflow: hidden;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .rgb-wrap::before {
+            content: ''; position: absolute; width: 180%; height: 180%;
+            background: conic-gradient(#ff0000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff, #ff0000);
+            animation: rotate 3s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .ticket { background: #000; border-radius: 25px; width: 310px; position: relative; z-index: 2; color: #fff; text-align: center; overflow: hidden; }
+        .t-head { background: linear-gradient(90deg, #d4af37, #f1c40f); color: #000; padding: 12px; font-weight: 900; }
+        .t-body { padding: 25px 20px; font-family: sans-serif; }
+        
+        /* ТАЙМЕР */
+        #timer { 
+            display: flex; justify-content: center; gap: 10px; margin: 15px 0;
+            font-family: monospace; color: var(--blue);
+        }
+        .t-unit { display: flex; flex-direction: column; align-items: center; }
+        .t-val { font-size: 20px; font-weight: bold; }
+        .t-lbl { font-size: 8px; color: #666; }
+
+        .row { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding: 8px 0; font-size: 13px; }
+        .btn-link { display: block; margin-top: 15px; padding: 14px; border-radius: 10px; text-decoration: none; font-weight: bold; color: #fff; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <canvas id="mc"></canvas>
+
+    <div id="scr1" class="screen">
+        <div class="glitch-frame">
+            <div style="font-size: 10px; opacity: 0.5;">DECRYPTING_SIGNAL...</div>
+            <div class="eq">x² - 10x + 25 = 0</div>
+            <input type="number" id="ans" inputmode="numeric" placeholder="?">
+            <button class="btn-main" onclick="validate()">DECRYPT ACCESS</button>
+        </div>
+    </div>
+
+    <div id="scr2" class="screen" style="display: none !important;">
+        <div class="rgb-wrap">
+            <div class="ticket">
+                <div class="t-head">THE VOVA SHOW // VIP PASS</div>
+                <div class="t-body">
+                    <h1 style="margin:0; font-size: 28px;">VOVA SHOW</h1>
+                    
+                    <div id="timer">
+                        <div class="t-unit"><span class="t-val" id="days">00</span><span class="t-lbl">ДН</span></div>
+                        <div class="t-unit"><span class="t-val" id="hours">00</span><span class="t-lbl">ЧАС</span></div>
+                        <div class="t-unit"><span class="t-val" id="mins">00</span><span class="t-lbl">МИН</span></div>
+                        <div class="t-unit"><span class="t-val" id="secs">00</span><span class="t-lbl">СЕК</span></div>
+                    </div>
+
+                    <div style="margin: 15px 0;">
+                        <div class="row"><span>ДАТА</span><b>22.02.2026</b></div>
+                        <div class="row"><span>ВРЕМЯ</span><b>13:00 (START)</b></div>
+                        <div class="row"><span>ЛОФТ</span><b>PRIME (Измайловский 2)</b></div>
+                    </div>
+
+                    <a href="https://t.me/твой_канал" class="btn-link" style="background:#24A1DE;">ВСТУПИТЬ В ГРУППУ</a>
+                    <a href="https://yandex.ru/maps" class="btn-link" style="border:1px solid var(--blue); color:var(--blue);">МАРШРУТ</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MATRIX BACKGROUND
+        const c = document.getElementById('mc'), ctx = c.getContext('2d');
+        let w = c.width = window.innerWidth, h = c.height = window.innerHeight;
+        const drops = Array(Math.floor(w/20)).fill(1);
+        function draw() {
+            ctx.fillStyle = "rgba(0,0,0,0.05)"; ctx.fillRect(0,0,w,h);
+            ctx.fillStyle = "#0f0"; ctx.font = "15px monospace";
+            drops.forEach((y, i) => {
+                ctx.fillText(Math.floor(Math.random()*2), i*20, y*20);
+                if(y*20 > h && Math.random() > 0.975) drops[i] = 0; drops[i]++;
+            });
+        }
+        setInterval(draw, 50);
+
+        // ТАЙМЕР ЛОГИКА
+        const targetDate = new Date("Feb 22, 2026 13:00:00").getTime();
+        function updateTimer() {
+            const now = new Date().getTime();
+            const diff = targetDate - now;
+            if (diff > 0) {
+                document.getElementById('days').innerText = Math.floor(diff / (1000 * 60 * 60 * 24));
+                document.getElementById('hours').innerText = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                document.getElementById('mins').innerText = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('secs').innerText = Math.floor((diff % (1000 * 60)) / 1000);
+            }
+        }
+        setInterval(updateTimer, 1000);
+
+        // ВАЛИДАЦИЯ
+        function validate() {
+            const input = document.getElementById('ans');
+            if(input.value.trim() === "5") {
+                input.blur();
+                document.getElementById('scr1').setAttribute('style', 'display:none !important');
+                document.getElementById('scr2').setAttribute('style', 'display:flex !important');
+                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                updateTimer();
+            } else {
+                alert("ACCESS DENIED");
+                input.value = "";
+            }
+        }
+    </script>
+</body>
+</html>
